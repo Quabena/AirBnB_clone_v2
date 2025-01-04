@@ -1,50 +1,50 @@
 #!/usr/bin/python3
-"""Unit test for testing MySQL storage with State model"""
+"""
+Contains the TestStateDatabaseClass
+"""
 import unittest
 import os
-import MySQLdb
 from models.state import State
 from models import storage
+import MySQLdb
 
 
-@unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
-                 "Test only relevant for DB storage")
-class TestDBStorageState(unittest.TestCase):
-    """Tests for the State model with DB storage"""
+class TestStateDatabaseClass(unittest.TestCase):
+    """Test cases for State class with DB storage"""
 
-    def setUp(self):
-        """Set up the database connection and environment for tests"""
-        self.db = MySQLdb.connect(
-            host=os.getenv('HBNB_MYSQL_HOST'),
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
+                    "Skip if not using db storage")
+    def test_create_state_db(self):
+        """Test creating a state adds a record to database"""
+        # Setup - get initial count
+        conn = MySQLdb.connect(
+            host=os.getenv('HBNB_MYSQL_HOST', 'localhost'),
+            port=3306,
             user=os.getenv('HBNB_MYSQL_USER'),
             passwd=os.getenv('HBNB_MYSQL_PWD'),
             db=os.getenv('HBNB_MYSQL_DB')
         )
-        self.cursor = self.db.cursor()
-
-    def tearDown(self):
-        """Clean up after tests"""
-        self.cursor.close()
-        self.db.close()
-
-    def test_create_state(self):
-        """Test creating a State via the console"""
-        # Get initial count of states
-        self.cursor.execute("SELECT COUNT(*) FROM states;")
-        initial_count = self.cursor.fetchone()[0]
-
-        # Create a new State
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM states")
+        initial_count = cur.fetchone()[0]
+        
+        # Action - create new state
         new_state = State(name="California")
-        storage.new(new_state)
-        storage.save()
+        new_state.save()
+        
+        # Assert - check count increased
+        cur.execute("SELECT COUNT(*) FROM states")
+        final_count = cur.fetchone()[0]
+        self.assertEqual(final_count, initial_count + 1)
+        
+        # Cleanup
+        cur.close()
+        conn.close()
 
-        # Get updated count of states
-        self.cursor.execute("SELECT COUNT(*) FROM states;")
-        updated_count = self.cursor.fetchone()[0]
-
-        # Validate the difference is +1
-        self.assertEqual(updated_count, initial_count + 1)
-
-
-if __name__ == "__main__":
-    unittest.main()
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
+                    "Skip if using db storage")
+    def test_create_state_file(self):
+        """Test creating a state with file storage"""
+        new_state = State(name="California")
+        new_state.save()
+        self.assertIn(new_state, storage.all(State).values())
