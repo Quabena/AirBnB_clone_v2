@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 """
 This script uses Fabric to create and distribute
-an archive to the web servers
+an archive to the web servers.
+
+exec-command: fab -f 3-deploy_web_static.py deploy -i ~/.ssh/id_rsa -u ubuntu
 """
 
 from fabric.api import env, local, put, run
