@@ -27,43 +27,34 @@ class FileStorage:
         if cls is None:
             return self.__objects
         else:
-            filtered_dict = {}
-            for key, value in self.__objects.items():
-                if type(value) is cls:
-                    filtered_dict[key] = value
-            return filtered_dict
-
-    def delete(self, obj=None):
-        """Removes an object from the storage dictionary"""
-        if obj is not None:
-            obj_key = obj.to_dict()['__class__'] + '.' + obj.id
-            if obj_key in self.__objects.keys():
-                del self.__objects[obj_key]
+            return {k: v for k, v in self.__objects.items(
+            ) if isinstance(v, cls)}
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
-        self.__objects.update(
-            {obj.to_dict()['__class__'] + '.' + obj.id: obj}
-        )
+        self.__objects[f"{obj.to_dict()['__class__']}.{obj.id}"] = obj
 
     def save(self):
         """Saves storage dictionary to file"""
         with open(self.__file_path, 'w') as file:
-            temp = {}
-            for key, val in self.__objects.items():
-                temp[key] = val.to_dict()
-            json.dump(temp, file)
+            json.dump({k: v.to_dict(
+            ) for k, v in self.__objects.items()}, file)
 
     def reload(self):
         """Loads storage dictionary from file"""
-        classes = self.model_classes
         if os.path.isfile(self.__file_path):
-            temp = {}
             with open(self.__file_path, 'r') as file:
-                temp = json.load(file)
-                for key, val in temp.items():
-                    self.all()[key] = classes[val['__class__']](**val)
+                data = json.load(file)
+                for key, val in data.items():
+                    self.__objects[key] =
+                    self.model_classes[val['__class__']](**val)
+
+    def delete(self, obj=None):
+        """Removes an object from the storage dictionary"""
+        if obj is not None:
+            obj_key = f"{obj.to_dict()['__class__']}.{obj.id}"
+            self.__objects.pop(obj_key, None)
 
     def close(self):
-        """Closes the storage engine."""
+        """Closes the storage engine by reloading data from file."""
         self.reload()

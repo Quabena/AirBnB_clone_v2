@@ -14,6 +14,7 @@ class State(BaseModel, Base):
     name = Column(
         String(128), nullable=False
     ) if os.getenv('HBNB_TYPE_STORAGE') == 'db' else ''
+
     if os.getenv('HBNB_TYPE_STORAGE') == 'db':
         cities = relationship(
             'City',
@@ -23,10 +24,7 @@ class State(BaseModel, Base):
     else:
         @property
         def cities(self):
-            """Returns the cities in this State"""
+            """Returns the list of City objects linked to this State"""
             from models import storage
-            cities_in_state = []
-            for value in storage.all(City).values():
-                if value.state_id == self.id:
-                    cities_in_state.append(value)
-            return cities_in_state
+            return [city for city in storage.all(
+                City).values() if city.state_id == self.id]
