@@ -8,7 +8,7 @@ Displays "C <text>" on the /c/<text> route, replacing uderscores with spaces
 
 from flask import Flask
 
-app = Flask("__name__")
+app = Flask(__name__)
 
 
 @app.route("/", strict_slashes=False)
@@ -17,7 +17,7 @@ def hello_route():
     return "Hello HBNB!"
 
 
-@app.route("/hbnb", strict_slahes=False)
+@app.route("/hbnb", strict_slashes=False)
 def hbnb():
     """Returns 'HBNB' for the /hbnb route"""
     return "HBNB"
