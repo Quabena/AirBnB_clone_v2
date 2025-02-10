@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""A script thhat starts a Flask web application and displays states"""
+"""A script that starts a Flask web application and display states"""
 from flask import Flask, render_template
 from models import storage
 from models.state import State
