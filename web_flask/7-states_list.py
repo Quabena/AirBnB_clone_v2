@@ -1,28 +1,27 @@
 #!/usr/bin/python3
-"""A script that starts a Flask web application and display states"""
-from flask import Flask, render_template
+""" A Script That Starts a Flash Web Application """
 from models import storage
 from models.state import State
-
+from flask import Flask, render_template
 app = Flask(__name__)
-
-
-@app.route("/states_list", strict_slashes=False)
-def states_list():
-    """
-    Display an HTML page with the list of all
-    State objects sorted by name.
-    """
-    states = storage.all(State).values()
-    sorted_states = sorted(states, key=lambda state: state.name)
-    return render_template("7-states_list.html", states=sorted_states)
+# app.jinja_env.trim_blocks = True
+# app.jinja_env.lstrip_blocks = True
 
 
 @app.teardown_appcontext
-def close_storage(exception):
-    """Close the SQLAlchemy session after each request"""
+def close_db(error):
+    """ Remove the current SQLAlchemy Session """
     storage.close()
 
 
+@app.route('/states_list', strict_slashes=False)
+def states_list():
+    """ displays a HTML page with a list of states """
+    states = storage.all(State).values()
+    states = sorted(states, key=lambda k: k.name)
+    return render_template('7-states_list.html', states=states)
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    """ Main Function """
+    app.run(host='0.0.0.0', port=5000)
